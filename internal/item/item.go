@@ -1,11 +1,17 @@
 package item
 
+import (
+	"github.com/teokt/gt-items/internal/memory"
+	"reflect"
+	"strconv"
+)
+
 type Item struct {
 	ID                         uint32
 	Flags                      uint16
 	Type                       uint8
 	Material                   uint8
-	Name                       string `encrypt:"true"` // only encrypted in versions >= 3
+	Name                       string
 	Texture                    string
 	TextureHash                uint32
 	VisualEffect               uint8
@@ -66,4 +72,40 @@ type Item struct {
 	Unknown3                   float32   `version:"19"`
 	Unknown4                   uint8     `version:"20"`
 	Unknown5                   uint8     `version:"21"`
+}
+
+func (i *Item) Deserialize(r *memory.Reader, version int) error {
+	v := reflect.ValueOf(i).Elem()
+	t := v.Type()
+
+	for idx := 0; idx < v.NumField(); idx++ {
+		field := v.Field(idx)
+		if !field.CanSet() {
+			continue
+		}
+
+		fieldType := t.Field(idx)
+		versionTag := fieldType.Tag.Get("version")
+		fieldVersion, _ := strconv.Atoi(versionTag)
+
+		if fieldVersion > version {
+			continue
+		}
+
+		fieldPtr := field.Addr().Interface()
+
+		// TODO: some deserializer class where can put custom handlers for specific fields like this
+		if fieldType.Name == "Name" && version >= 3 {
+			if err := r.ReadEncryptedString(fieldPtr.(*string), int(i.ID), "PBG892FXX982ABC*"); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err := r.Read(fieldPtr); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
