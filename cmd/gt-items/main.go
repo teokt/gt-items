@@ -1,10 +1,19 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/teokt/gt-items/internal/item"
 	"os"
+	"strconv"
+	"strings"
 )
+
+func dump(data any) {
+	b, _ := json.MarshalIndent(data, "", "  ")
+	fmt.Println(string(b))
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -22,11 +31,43 @@ func main() {
 
 	fmt.Printf("loaded items.dat [version: %d, item count: %d]\n", items.Version, len(items.Items))
 
-	item, err := items.GetByID(2)
-	if err != nil {
-		fmt.Println("failed to get itemID 2:", err)
-		return
-	}
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("gt-items> ")
 
-	fmt.Printf("itemID 2 name: %s\n", item.Name)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("error reading input:", err)
+			continue
+		}
+
+		input = strings.TrimSpace(input)
+		parts := strings.SplitN(input, " ", 2)
+		cmd := parts[0]
+
+		switch cmd {
+		case "find":
+			if len(parts) < 2 {
+				fmt.Println("usage: find <itemID>")
+				continue
+			}
+
+			itemID, err := strconv.Atoi(parts[1])
+			if err != nil {
+				fmt.Printf("error: itemID arg '%s' not an integer\n", parts[1])
+				continue
+			}
+
+			item, err := items.GetByID(itemID)
+			if err != nil {
+				fmt.Printf("error: itemID %d not found\n", itemID)
+				continue
+			}
+
+			dump(item)
+
+		default:
+			fmt.Println("unknown command:", cmd)
+		}
+	}
 }
