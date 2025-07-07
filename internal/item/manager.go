@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const SupportedVersion uint16 = 21
+
 type ItemManager struct {
 	Version uint16
 	Items   []Item
@@ -33,7 +35,9 @@ func (im *ItemManager) Deserialize(data []byte) error {
 		return err
 	}
 
-	// TODO: supported version check
+	if im.Version > SupportedVersion {
+		return errors.New("unsupported version")
+	}
 
 	var count uint32
 	if err := r.Read(&count); err != nil {
