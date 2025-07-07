@@ -7,37 +7,6 @@ import (
 	"strconv"
 )
 
-type ItemClientData struct {
-	Collision             int32
-	StartFrame            int32
-	NumWalkCycle          int32
-	NumShootCycle         int32
-	NumProjectileCycle    int32
-	ProjectileOffsetSides math.Vec2[int32]
-	ProjectileOffsetUp    math.Vec2[int32]
-	ProjectileOffsetDown  math.Vec2[int32]
-	Unknown               [4]int32
-}
-
-type ItemExtraSlots struct {
-	Count     int32
-	BodyParts [9]uint8
-}
-
-type ItemCustomChair struct {
-	Enabled          uint8
-	PlayerOffset     math.Vec2[int32]
-	ArmTexturePos    math.Vec2[int32]
-	ArmTextureOffset math.Vec2[int32]
-	ArmTexture       string
-}
-
-type ItemRandomSpriteReplacement struct {
-	Enabled uint8
-	Offset  int32
-	Chance  float32
-}
-
 type Item struct {
 	ID                      uint32
 	Flags                   uint16
@@ -93,6 +62,37 @@ type Item struct {
 	RandomSpriteReplacement ItemRandomSpriteReplacement `version:"19"`
 	Unknown                 uint8                       `version:"20"`
 	IsTransform             uint8                       `version:"21"`
+}
+
+type ItemClientData struct {
+	Collision          int32
+	StartFrame         int32
+	NumWalkCycle       int32
+	NumShootCycle      int32
+	NumProjectileCycle int32
+	ProjectileOffsetLR math.Vec2[int32]
+	ProjectileOffsetU  math.Vec2[int32]
+	ProjectileOffsetD  math.Vec2[int32]
+	Unknown            [4]int32
+}
+
+type ItemExtraSlots struct {
+	Count     int32
+	BodyParts [9]uint8
+}
+
+type ItemCustomChair struct {
+	Enabled          uint8
+	PlayerOffset     math.Vec2[int32]
+	ArmTexturePos    math.Vec2[int32]
+	ArmTextureOffset math.Vec2[int32]
+	ArmTexture       string
+}
+
+type ItemRandomSpriteReplacement struct {
+	Enabled uint8
+	Offset  int32
+	Chance  float32
 }
 
 func (i *Item) Deserialize(r *memory.Reader, version int) error {
