@@ -12,10 +12,32 @@ type Condition interface {
 	Match(value any) bool
 }
 
-type NumericValue int
+type Or []Condition
 
-func (v NumericValue) Match(val any) bool {
-	return int(v) == utils.ToInt(val)
+func (o Or) Match(val any) bool {
+	for _, cond := range o {
+		if cond.Match(val) {
+			return true
+		}
+	}
+	return false
+}
+
+type And []Condition
+
+func (a And) Match(val any) bool {
+	for _, cond := range a {
+		if !cond.Match(val) {
+			return false
+		}
+	}
+	return true
+}
+
+type Not struct{ Condition }
+
+func (n Not) Match(val any) bool {
+	return !n.Condition.Match(val)
 }
 
 type NumericRange struct {
@@ -70,32 +92,4 @@ func (sv StringValue) Match(val any) bool {
 		return false
 	}
 	return utils.ToInt(val) == n
-}
-
-type Or []Condition
-
-func (o Or) Match(val any) bool {
-	for _, cond := range o {
-		if cond.Match(val) {
-			return true
-		}
-	}
-	return false
-}
-
-type And []Condition
-
-func (a And) Match(val any) bool {
-	for _, cond := range a {
-		if !cond.Match(val) {
-			return false
-		}
-	}
-	return true
-}
-
-type Not struct{ Condition }
-
-func (n Not) Match(val any) bool {
-	return !n.Condition.Match(val)
 }
