@@ -1,29 +1,30 @@
 package item
 
 import (
-	"github.com/teokt/gt-items/internal/math"
-	"github.com/teokt/gt-items/internal/memory"
 	"reflect"
 	"strconv"
+
+	"github.com/teokt/gt-items/internal/math"
+	"github.com/teokt/gt-items/internal/memory"
 )
 
 type Item struct {
 	ID                      uint32
-	Flags                   uint16
-	Type                    uint8
-	Material                uint8
+	Flags                   ItemFlags
+	Type                    ItemType
+	Material                ItemMaterial
 	Name                    string
 	Texture                 string
 	TextureHash             uint32
-	VisualEffect            uint8
+	VisualEffect            TileVisualEffect
 	Cook                    int32
 	TexturePos              math.Vec2[uint8]
-	Storage                 uint8
+	Storage                 TileStorage
 	Layer                   int8
-	Collision               uint8
+	Collision               TileCollision
 	HitsToDestroy           uint8
 	HealTime                int32
-	BodyPart                uint8
+	BodyPart                BodyPart
 	Rarity                  uint16
 	MaxCanHold              uint8
 	ExtraFile               string
@@ -42,12 +43,12 @@ type Item struct {
 	Seed1                   uint16
 	Seed2                   uint16
 	SecondsToBloom          uint32
-	FXFlags                 uint32                      `version:"7"`
+	FXFlags                 ItemFXFlags                 `version:"7"`
 	MultiAnimData           string                      `version:"7"`
 	OverlayObjectTexture    string                      `version:"8"`
 	MultiAnim2Data          string                      `version:"8"`
 	DualLayer               math.Vec2[uint32]           `version:"8"`
-	Flags2                  uint32                      `version:"9"`
+	Flags2                  ItemFlags2                  `version:"9"`
 	ClientData              ItemClientData              `version:"9"`
 	TileRange               uint32                      `version:"10"`
 	PileSize                uint32                      `version:"10"`
@@ -99,7 +100,7 @@ func (i *Item) Deserialize(r *memory.Reader, version int) error {
 	v := reflect.ValueOf(i).Elem()
 	t := v.Type()
 
-	for idx := 0; idx < v.NumField(); idx++ {
+	for idx := range v.NumField() {
 		field := v.Field(idx)
 		if !field.CanSet() {
 			continue

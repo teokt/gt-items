@@ -2,8 +2,14 @@ package item
 
 import (
 	"errors"
-	"github.com/teokt/gt-items/internal/memory"
 	"os"
+
+	"github.com/teokt/gt-items/internal/memory"
+)
+
+var (
+	ErrVersionNotSupported = errors.New("version not supported")
+	ErrItemNotFound        = errors.New("item not found")
 )
 
 const SupportedVersion uint16 = 21
@@ -36,7 +42,7 @@ func (im *ItemManager) Deserialize(data []byte) error {
 	}
 
 	if im.Version > SupportedVersion {
-		return errors.New("unsupported version")
+		return ErrVersionNotSupported
 	}
 
 	var count uint32
@@ -46,7 +52,8 @@ func (im *ItemManager) Deserialize(data []byte) error {
 
 	im.Items = make([]Item, count)
 	for i := range im.Items {
-		if err := im.Items[i].Deserialize(r, int(im.Version)); err != nil {
+		item := &im.Items[i]
+		if err := item.Deserialize(r, int(im.Version)); err != nil {
 			return err
 		}
 	}
@@ -56,7 +63,7 @@ func (im *ItemManager) Deserialize(data []byte) error {
 
 func (im *ItemManager) GetByID(id int) (*Item, error) {
 	if id < 0 || id >= len(im.Items) {
-		return nil, errors.New("item not found")
+		return nil, ErrItemNotFound
 	}
 	return &im.Items[id], nil
 }
