@@ -3,7 +3,7 @@ tool for reading and searching growtopia `items.dat` with advanced filtering.
 
 ---
 
-![image](https://github.com/user-attachments/assets/a10c040a-b735-421a-a96f-42856b7cca88)
+![image](https://github.com/user-attachments/assets/645c0d60-d068-47c3-851a-abbcd2630663)
 
 ---
 
