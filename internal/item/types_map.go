@@ -270,7 +270,7 @@ var itemFlagsMap = map[ItemFlags]string{
 	ItemFlagsBeta:        "Beta",
 	ItemFlagsAutopickup:  "Autopickup",
 	ItemFlagsMod:         "Mod",
-	ItemFlagsRandomGrow:  "Randomgrow",
+	ItemFlagsRandomGrow:  "RandomGrow",
 	ItemFlagsPublic:      "Public",
 	ItemFlagsForeground:  "Foreground",
 	ItemFlagsHoliday:     "Holiday",
@@ -307,6 +307,7 @@ var itemFlags2Map = map[ItemFlags2]string{
 	ItemFlags2ExtinguishFire:         "ExtinguishFire",
 	ItemFlags2ExtinguishFireNoDamage: "ExtinguishFireNoDamage",
 	ItemFlags2NeedReceptionDesk:      "NeedReceptionDesk",
+	ItemFlags2UsePaint:               "UsePaint",
 }
 
 var itemFXFlagsMap = map[ItemFXFlags]string{
@@ -424,6 +425,18 @@ func (v BodyPart) String() string {
 }
 
 func (BodyPart) IsEnum() bool {
+	return true
+}
+
+func (AvatarParts) Map() map[AvatarParts]string {
+	return avatarPartsMap
+}
+
+func (v AvatarParts) String() string {
+	return flagToString(v, v.Map())
+}
+
+func (AvatarParts) IsFlag() bool {
 	return true
 }
 

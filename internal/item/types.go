@@ -322,6 +322,7 @@ const (
 	ItemFlags2ExtinguishFire
 	ItemFlags2ExtinguishFireNoDamage
 	ItemFlags2NeedReceptionDesk
+	ItemFlags2UsePaint
 )
 
 const (
