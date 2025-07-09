@@ -2,10 +2,14 @@ package item
 
 type ItemType uint8
 type ItemMaterial uint8
+
 type TileVisualEffect uint8
 type TileStorage uint8
 type TileCollision uint8
+
 type BodyPart uint8
+type AvatarParts uint8
+
 type ItemFlags uint16
 type ItemFlags2 uint32
 type ItemFXFlags uint32
@@ -261,6 +265,15 @@ const (
 )
 
 const (
+	AvatarPartsHead AvatarParts = 1 << iota
+	AvatarPartsFace
+	AvatarPartsBody
+	AvatarPartsFrontArm
+	AvatarPartsBackArm
+	AvatarPartsLegs
+)
+
+const (
 	ItemFlagsFlippable ItemFlags = 1 << iota
 	ItemFlagsEditable
 	ItemFlagsSeedless
@@ -294,7 +307,7 @@ const (
 	ItemFlags2StarshipHelm
 	ItemFlags2StarshipReactor
 	ItemFlags2StarshipViewscreen
-	ItemFlags2SuperMod
+	ItemFlags2SMod
 	ItemFlags2TileDeadlyIfOn
 	ItemFlags2LongHandItem64x32
 	ItemFlags2Gemless

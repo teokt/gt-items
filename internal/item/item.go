@@ -61,7 +61,7 @@ type Item struct {
 	OtherPlayerHitParticle  int32                       `version:"17"`
 	ConfigHash              uint32                      `version:"18"`
 	RandomSpriteReplacement ItemRandomSpriteReplacement `version:"19"`
-	Unknown                 uint8                       `version:"20"`
+	HiddenAvatarParts       AvatarParts                 `version:"20"`
 	IsTransform             uint8                       `version:"21"`
 }
 

@@ -249,6 +249,15 @@ var bodyPartMap = map[BodyPart]string{
 	BodyPartNumBodyParts: "NumBodyParts",
 }
 
+var avatarPartsMap = map[AvatarParts]string{
+	AvatarPartsHead:     "Head",
+	AvatarPartsFace:     "Shirt",
+	AvatarPartsBody:     "Body",
+	AvatarPartsFrontArm: "FrontArm",
+	AvatarPartsBackArm:  "BackArm",
+	AvatarPartsLegs:     "Legs",
+}
+
 var itemFlagsMap = map[ItemFlags]string{
 	ItemFlagsFlippable:   "Flippable",
 	ItemFlagsEditable:    "Editable",
@@ -283,7 +292,7 @@ var itemFlags2Map = map[ItemFlags2]string{
 	ItemFlags2StarshipHelm:           "StarshipHelm",
 	ItemFlags2StarshipReactor:        "StarshipReactor",
 	ItemFlags2StarshipViewscreen:     "StarshipViewscreen",
-	ItemFlags2SuperMod:               "SuperMod",
+	ItemFlags2SMod:                   "SMod",
 	ItemFlags2TileDeadlyIfOn:         "TileDeadlyIfOn",
 	ItemFlags2LongHandItem64x32:      "LongHandItem64x32",
 	ItemFlags2Gemless:                "Gemless",
