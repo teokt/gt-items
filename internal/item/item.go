@@ -51,11 +51,11 @@ type Item struct {
 	Flags2                  ItemFlags2                  `version:"9"`
 	ClientData              ItemClientData              `version:"9"`
 	TileRange               uint32                      `version:"10"`
-	PileSize                uint32                      `version:"10"`
+	StorageSize             uint32                      `version:"10"`
 	PunchParameters         string                      `version:"11"`
 	ExtraSlots              ItemExtraSlots              `version:"12"`
 	LightSourceMod          int32                       `version:"13"`
-	VariantVersion          int32                       `version:"14"`
+	VariantItem             int32                       `version:"14"`
 	CustomChair             ItemCustomChair             `version:"15"`
 	ConfigName              string                      `version:"16"`
 	OtherPlayerHitParticle  int32                       `version:"17"`
