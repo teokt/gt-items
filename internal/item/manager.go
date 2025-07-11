@@ -26,6 +26,13 @@ func NewItemManager() *ItemManager {
 	}
 }
 
+func (im *ItemManager) GetItemByID(itemID int) (*Item, error) {
+	if itemID < 0 || itemID >= len(im.Items) {
+		return nil, ErrItemNotFound
+	}
+	return &im.Items[itemID], nil
+}
+
 func (im *ItemManager) LoadFromFile(filename string) error {
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -35,9 +42,9 @@ func (im *ItemManager) LoadFromFile(filename string) error {
 }
 
 func (im *ItemManager) Deserialize(data []byte) error {
-	r := memory.NewReader(data)
+	reader := memory.NewReader(data)
 
-	if err := r.Read(&im.Version); err != nil {
+	if err := reader.Read(&im.Version); err != nil {
 		return err
 	}
 
@@ -45,25 +52,19 @@ func (im *ItemManager) Deserialize(data []byte) error {
 		return ErrVersionNotSupported
 	}
 
-	var count uint32
-	if err := r.Read(&count); err != nil {
+	var itemCount uint32
+	if err := reader.Read(&itemCount); err != nil {
 		return err
 	}
 
-	im.Items = make([]Item, count)
+	im.Items = make([]Item, itemCount)
+
 	for i := range im.Items {
 		item := &im.Items[i]
-		if err := item.Deserialize(r, int(im.Version)); err != nil {
+		if err := item.Deserialize(reader, int(im.Version)); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (im *ItemManager) GetByID(id int) (*Item, error) {
-	if id < 0 || id >= len(im.Items) {
-		return nil, ErrItemNotFound
-	}
-	return &im.Items[id], nil
 }

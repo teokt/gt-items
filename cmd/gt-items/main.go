@@ -29,8 +29,8 @@ func main() {
 
 	fmt.Printf("loaded items.dat [version: %d, item count: %d]\n", items.Version, len(items.Items))
 
-	matcher := filter.NewMatcher[*item.Item]()
 	reader := bufio.NewReader(os.Stdin)
+	matcher := filter.NewMatcher[*item.Item]()
 
 	for {
 		fmt.Print("gt-items> ")
@@ -77,9 +77,9 @@ func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], 
 	}
 
 	var results []*item.Item
-	for _, i := range items.Items {
-		if matcher.Matches(&i) {
-			results = append(results, &i)
+	for _, item := range items.Items {
+		if matcher.Matches(&item) {
+			results = append(results, &item)
 			if limit != 0 && len(results) >= limit {
 				break
 			}
@@ -88,39 +88,16 @@ func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], 
 	printTable(results, displayFields)
 }
 
-func getFieldMap[T any](obj T) map[string]reflect.Value {
-	val := reflect.ValueOf(obj)
-	val = reflect.Indirect(val)
-	typ := val.Type()
-
-	fields := make(map[string]reflect.Value)
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		fields[strings.ToLower(field.Name)] = val.Field(i)
-	}
-	return fields
-}
-
-func printTable[T any](data []T, displayFields []string) {
+func printTable[T any](items []T, displayFields []string) {
 	table := tablewriter.NewTable(os.Stdout,
 		tablewriter.WithHeaderAutoFormat(tw.Off),
 	)
 
-	fieldNameMap := make(map[string]string)
-	if len(data) > 0 {
-		val := reflect.ValueOf(data[0])
-		val = reflect.Indirect(val)
-		typ := val.Type()
-
-		for i := 0; i < typ.NumField(); i++ {
-			f := typ.Field(i)
-			fieldNameMap[strings.ToLower(f.Name)] = f.Name
-		}
-	}
+	fieldNames := createFieldNameMap[T]()
 
 	headers := []string{}
 	for _, field := range displayFields {
-		if exact, ok := fieldNameMap[field]; ok {
+		if exact, ok := fieldNames[strings.ToLower(field)]; ok {
 			headers = append(headers, exact)
 		} else {
 			headers = append(headers, field)
@@ -128,18 +105,44 @@ func printTable[T any](data []T, displayFields []string) {
 	}
 	table.Header(headers)
 
-	for _, item := range data {
-		fieldMap := getFieldMap(item)
+	for _, item := range items {
+		fields := createFieldMap(item)
 		row := []string{}
 		for _, field := range displayFields {
-			if val, ok := fieldMap[field]; ok {
+			if val, ok := fields[strings.ToLower(field)]; ok {
 				row = append(row, fmt.Sprintf("%v", val))
 			} else {
-				row = append(row, "")
+				row = append(row, "<unknown field>")
 			}
 		}
 		table.Append(row)
 	}
 
 	table.Render()
+}
+
+func createFieldNameMap[T any]() map[string]string {
+	typ := reflect.TypeFor[T]()
+	if typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
+	}
+
+	fieldNames := make(map[string]string)
+	for i := range typ.NumField() {
+		fieldName := typ.Field(i).Name
+		fieldNames[strings.ToLower(fieldName)] = fieldName
+	}
+	return fieldNames
+}
+
+func createFieldMap[T any](obj T) map[string]reflect.Value {
+	val := reflect.Indirect(reflect.ValueOf(obj))
+	typ := val.Type()
+
+	fields := make(map[string]reflect.Value)
+	for i := range typ.NumField() {
+		fieldName := typ.Field(i).Name
+		fields[strings.ToLower(fieldName)] = val.Field(i)
+	}
+	return fields
 }

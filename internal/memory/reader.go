@@ -17,20 +17,22 @@ func NewReader(data []byte) *Reader {
 	}
 }
 
-func (r *Reader) Read(v any) error {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Ptr {
+func (r *Reader) Read(dest any) error {
+	val := reflect.ValueOf(dest)
+
+	if val.Kind() != reflect.Ptr {
 		return errors.New("must pass a pointer")
 	}
 
-	elem := rv.Elem()
+	val = val.Elem()
 
-	switch elem.Kind() {
+	switch val.Kind() {
 	case reflect.String:
-		return r.ReadString(v.(*string))
+		return r.ReadString(dest.(*string))
 	case reflect.Struct:
-		for i := 0; i < elem.NumField(); i++ {
-			field := elem.Field(i)
+		for i := range val.NumField() {
+			field := val.Field(i)
+
 			if !field.CanSet() {
 				continue
 			}
@@ -42,15 +44,15 @@ func (r *Reader) Read(v any) error {
 		}
 		return nil
 	default:
-		return r.ReadRaw(v)
+		return r.ReadRaw(dest)
 	}
 }
 
-func (r *Reader) ReadRaw(v any) error {
-	return binary.Read(r.r, binary.LittleEndian, v)
+func (r *Reader) ReadRaw(dest any) error {
+	return binary.Read(r.r, binary.LittleEndian, dest)
 }
 
-func (r *Reader) ReadString(out *string) error {
+func (r *Reader) ReadString(dest *string) error {
 	var size uint16
 	if err := r.ReadRaw(&size); err != nil {
 		return err
@@ -61,11 +63,11 @@ func (r *Reader) ReadString(out *string) error {
 		return err
 	}
 
-	*out = string(buf)
+	*dest = string(buf)
 	return nil
 }
 
-func (r *Reader) ReadEncryptedString(out *string, cryptID int, secretCode string) error {
+func (r *Reader) ReadEncryptedString(dest *string, cryptID int, secretCode string) error {
 	var size uint16
 	if err := r.ReadRaw(&size); err != nil {
 		return err
@@ -82,6 +84,6 @@ func (r *Reader) ReadEncryptedString(out *string, cryptID int, secretCode string
 		buf[i] ^= secretCode[(i+cryptID)%secretLen]
 	}
 
-	*out = string(buf)
+	*dest = string(buf)
 	return nil
 }

@@ -21,43 +21,39 @@ func NewMatcher[T any]() *Matcher[T] {
 func createAccessors[T any]() map[string]func(T) any {
 	accessors := make(map[string]func(T) any)
 
-	t := reflect.TypeFor[T]()
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
+	typ := reflect.TypeFor[T]()
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
 	}
 
-	for i := range t.NumField() {
-		field := t.Field(i)
-		if field.PkgPath != "" {
+	for i := range typ.NumField() {
+		fieldTyp := typ.Field(i)
+		if fieldTyp.PkgPath != "" {
 			continue
 		}
 
 		// no struct support yet
-		fieldKind := field.Type.Kind()
+		fieldKind := fieldTyp.Type.Kind()
 		if fieldKind == reflect.Struct {
 			continue
 		}
 
-		fieldName := strings.ToLower(field.Name)
-		index := field.Index
+		fieldName := strings.ToLower(fieldTyp.Name)
 
 		accessors[fieldName] = func(v T) any {
-			val := reflect.ValueOf(v)
-			if val.Kind() == reflect.Ptr {
-				val = val.Elem()
-			}
-			return val.FieldByIndex(index).Interface()
+			val := reflect.Indirect(reflect.ValueOf(v))
+			return val.Field(i).Interface()
 		}
 	}
 
 	return accessors
 }
 
-func (e *Matcher[T]) ClearFilters() {
-	e.conditions = make(map[string]Condition)
+func (m *Matcher[T]) ClearFilters() {
+	m.conditions = make(map[string]Condition)
 }
 
-func (e *Matcher[T]) AddFilter(filter string) error {
+func (m *Matcher[T]) AddFilter(filter string) error {
 	if !strings.Contains(filter, "=") {
 		return fmt.Errorf("invalid filter format: %s", filter)
 	}
@@ -66,7 +62,7 @@ func (e *Matcher[T]) AddFilter(filter string) error {
 	fieldName := strings.TrimPrefix(parts[0], "--")
 	expr := parts[1]
 
-	if e.accessors[fieldName] == nil {
+	if m.accessors[fieldName] == nil {
 		return fmt.Errorf("invalid field: %s", fieldName)
 	}
 
@@ -76,13 +72,13 @@ func (e *Matcher[T]) AddFilter(filter string) error {
 	}
 
 	// fmt.Printf("condition: %#v\n", cond)
-	e.conditions[fieldName] = cond
+	m.conditions[fieldName] = cond
 	return nil
 }
 
-func (e *Matcher[T]) Matches(v T) bool {
-	for fieldName, cond := range e.conditions {
-		accessor, ok := e.accessors[fieldName]
+func (m *Matcher[T]) Matches(v T) bool {
+	for fieldName, cond := range m.conditions {
+		accessor, ok := m.accessors[fieldName]
 		if !ok {
 			return false
 		}

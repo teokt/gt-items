@@ -45,8 +45,8 @@ type NumericRange struct {
 	Max *int
 }
 
-func (r NumericRange) Match(val any) bool {
-	n := utils.ToInt(val)
+func (r NumericRange) Match(v any) bool {
+	n := utils.ToInt(v)
 	if r.Min != nil && n < *r.Min {
 		return false
 	}
@@ -58,11 +58,11 @@ func (r NumericRange) Match(val any) bool {
 
 type StringValue string
 
-func (sv StringValue) Match(val any) bool {
+func (sv StringValue) Match(v any) bool {
 	str := strings.ToLower(string(sv))
 
-	if utils.IsFlag(val) {
-		s, ok := val.(fmt.Stringer)
+	if utils.IsFlag(v) {
+		s, ok := v.(fmt.Stringer)
 		if !ok {
 			return false
 		}
@@ -75,15 +75,15 @@ func (sv StringValue) Match(val any) bool {
 		return false
 	}
 
-	if utils.IsEnum(val) {
-		s, ok := val.(fmt.Stringer)
+	if utils.IsEnum(v) {
+		s, ok := v.(fmt.Stringer)
 		if !ok {
 			return false
 		}
 		return strings.ToLower(s.String()) == str
 	}
 
-	if s, ok := val.(string); ok {
+	if s, ok := v.(string); ok {
 		return strings.Contains(strings.ToLower(s), str)
 	}
 
@@ -91,5 +91,5 @@ func (sv StringValue) Match(val any) bool {
 	if err != nil {
 		return false
 	}
-	return utils.ToInt(val) == n
+	return utils.ToInt(v) == n
 }

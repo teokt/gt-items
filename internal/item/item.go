@@ -96,35 +96,36 @@ type ItemRandomSpriteReplacement struct {
 	Chance  float32
 }
 
-func (i *Item) Deserialize(r *memory.Reader, version int) error {
-	v := reflect.ValueOf(i).Elem()
-	t := v.Type()
+func (item *Item) Deserialize(reader *memory.Reader, version int) error {
+	val := reflect.ValueOf(item).Elem()
+	typ := val.Type()
 
-	for idx := range v.NumField() {
-		field := v.Field(idx)
+	for i := range val.NumField() {
+		field := val.Field(i)
+		fieldTyp := typ.Field(i)
+
 		if !field.CanSet() {
 			continue
 		}
 
-		fieldType := t.Field(idx)
-		versionTag := fieldType.Tag.Get("version")
+		versionTag := fieldTyp.Tag.Get("version")
 		fieldVersion, _ := strconv.Atoi(versionTag)
 
 		if fieldVersion > version {
 			continue
 		}
 
-		fieldPtr := field.Addr().Interface()
+		fieldAddr := field.Addr().Interface()
 
 		// TODO: some deserializer class where can put custom handlers for specific fields like this
-		if fieldType.Name == "Name" && version >= 3 {
-			if err := r.ReadEncryptedString(fieldPtr.(*string), int(i.ID), "PBG892FXX982ABC*"); err != nil {
+		if fieldTyp.Name == "Name" && version >= 3 {
+			if err := reader.ReadEncryptedString(fieldAddr.(*string), int(item.ID), "PBG892FXX982ABC*"); err != nil {
 				return err
 			}
 			continue
 		}
 
-		if err := r.Read(fieldPtr); err != nil {
+		if err := reader.Read(fieldAddr); err != nil {
 			return err
 		}
 	}
