@@ -63,6 +63,7 @@ type Item struct {
 	RandomSpriteReplacement ItemRandomSpriteReplacement `version:"19"`
 	HiddenAvatarParts       AvatarParts                 `version:"20"`
 	IsTransform             uint8                       `version:"21"`
+	Description             string                      `version:"22"`
 }
 
 type ItemClientData struct {

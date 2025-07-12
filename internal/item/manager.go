@@ -12,7 +12,7 @@ var (
 	ErrItemNotFound        = errors.New("item not found")
 )
 
-const SupportedVersion uint16 = 21
+const SupportedVersion uint16 = 22
 
 type ItemManager struct {
 	Version uint16
