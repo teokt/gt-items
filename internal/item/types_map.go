@@ -1,6 +1,8 @@
 package item
 
 import (
+	"fmt"
+
 	"github.com/teokt/gt-items/internal/utils"
 )
 
@@ -338,6 +340,14 @@ var itemFXFlagsMap = map[ItemFXFlags]string{
 	ItemFXFlagsRenderFXVariantVer: "RenderFXVariantVer",
 }
 
+func enumToString[T utils.Integer](value T, mp map[T]string) string {
+	enum, ok := mp[value]
+	if !ok {
+		return fmt.Sprintf("Unknown<%d>", value)
+	}
+	return enum
+}
+
 func flagsToString[T utils.Integer](value T, mp map[T]string) string {
 	if value == 0 {
 		return "None"
@@ -360,7 +370,7 @@ func (ItemType) Map() map[ItemType]string {
 }
 
 func (v ItemType) String() string {
-	return itemTypeMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (ItemType) IsEnum() bool {
@@ -372,7 +382,7 @@ func (ItemMaterial) Map() map[ItemMaterial]string {
 }
 
 func (v ItemMaterial) String() string {
-	return itemMaterialMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (ItemMaterial) IsEnum() bool {
@@ -384,7 +394,7 @@ func (TileVisualEffect) Map() map[TileVisualEffect]string {
 }
 
 func (v TileVisualEffect) String() string {
-	return tileVisualEffectMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (TileVisualEffect) IsEnum() bool {
@@ -396,7 +406,7 @@ func (TileStorage) Map() map[TileStorage]string {
 }
 
 func (v TileStorage) String() string {
-	return tileStorageMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (TileStorage) IsEnum() bool {
@@ -408,7 +418,7 @@ func (TileCollision) Map() map[TileCollision]string {
 }
 
 func (v TileCollision) String() string {
-	return tileCollisionMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (TileCollision) IsEnum() bool {
@@ -420,7 +430,7 @@ func (BodyPart) Map() map[BodyPart]string {
 }
 
 func (v BodyPart) String() string {
-	return bodyPartMap[v]
+	return enumToString(v, v.Map())
 }
 
 func (BodyPart) IsEnum() bool {
