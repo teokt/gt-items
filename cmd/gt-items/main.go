@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -40,6 +41,8 @@ func main() {
 		cmd, args, _ := strings.Cut(input, " ")
 
 		switch cmd {
+		case "export":
+			exportJSON(items, args)
 		case "search":
 			handleSearch(items, matcher, args)
 		case "fields":
@@ -50,6 +53,25 @@ func main() {
 			fmt.Println("unknown command:", cmd)
 		}
 	}
+}
+
+func exportJSON(items *item.ItemManager, filename string) {
+	if filename == "" {
+		filename = "items.json"
+	}
+
+	itemsJSON, err := json.MarshalIndent(items.Items, "", "  ")
+	if err != nil {
+		fmt.Println("failed to convert items to json:", err)
+		return
+	}
+
+	if err := os.WriteFile(filename, itemsJSON, 0644); err != nil {
+		fmt.Printf("failed to write to %s: %v\n", filename, err)
+		return
+	}
+
+	fmt.Printf("exported items to %s\n", filename)
 }
 
 func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], filters string) {
