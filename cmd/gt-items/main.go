@@ -37,12 +37,11 @@ func main() {
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
-		parts := strings.SplitN(input, " ", 2)
-		cmd := parts[0]
+		cmd, args, _ := strings.Cut(input, " ")
 
 		switch cmd {
 		case "search":
-			handleSearch(items, matcher, parts[1])
+			handleSearch(items, matcher, args)
 		case "fields":
 			printFieldsTable(matcher.Fields)
 		case "exit", "quit":
@@ -54,7 +53,7 @@ func main() {
 }
 
 func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], filters string) {
-	if len(filters) == 0 {
+	if filters == "" {
 		fmt.Println("usage: search <filters> [--display=id,name] [--limit=10]")
 		return
 	}
@@ -67,13 +66,13 @@ func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], 
 	args := strings.Split(filters, "--")[1:]
 	for _, arg := range args {
 		switch {
-		case strings.HasPrefix(arg, "--display="):
-			displayFields = strings.Split(strings.TrimPrefix(arg, "--display="), ",")
-		case strings.HasPrefix(arg, "--limit="):
-			limit, _ = strconv.Atoi(strings.TrimPrefix(arg, "--limit="))
+		case strings.HasPrefix(arg, "display="):
+			displayFields = strings.Split(strings.TrimPrefix(arg, "display="), ",")
+		case strings.HasPrefix(arg, "limit="):
+			limit, _ = strconv.Atoi(strings.TrimPrefix(arg, "limit="))
 		default:
 			if err := matcher.AddFilter(arg); err != nil {
-				fmt.Printf("error: %v\n", err)
+				fmt.Println("error:", err)
 				return
 			}
 		}

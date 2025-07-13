@@ -28,7 +28,7 @@ func (m *Matcher[T]) AddFilter(filter string) error {
 
 	parts := strings.SplitN(strings.ToLower(filter), "=", 2)
 	fieldName := strings.TrimPrefix(parts[0], "--")
-	expr := parts[1]
+	expr := strings.TrimRight(parts[1], " ")
 
 	field, ok := m.Fields[fieldName]
 	if !ok {
