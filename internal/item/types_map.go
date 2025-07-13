@@ -1,5 +1,9 @@
 package item
 
+import (
+	"github.com/teokt/gt-items/internal/utils"
+)
+
 var itemTypeMap = map[ItemType]string{
 	ItemTypeFist:                   "Fist",
 	ItemTypeWrench:                 "Wrench",
@@ -334,12 +338,7 @@ var itemFXFlagsMap = map[ItemFXFlags]string{
 	ItemFXFlagsRenderFXVariantVer: "RenderFXVariantVer",
 }
 
-type Integer interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
-}
-
-func flagToString[T Integer](value T, mp map[T]string) string {
+func flagsToString[T utils.Integer](value T, mp map[T]string) string {
 	if value == 0 {
 		return "None"
 	}
@@ -433,10 +432,10 @@ func (AvatarParts) Map() map[AvatarParts]string {
 }
 
 func (v AvatarParts) String() string {
-	return flagToString(v, v.Map())
+	return flagsToString(v, v.Map())
 }
 
-func (AvatarParts) IsFlag() bool {
+func (AvatarParts) IsFlags() bool {
 	return true
 }
 
@@ -445,10 +444,10 @@ func (ItemFlags) Map() map[ItemFlags]string {
 }
 
 func (v ItemFlags) String() string {
-	return flagToString(v, v.Map())
+	return flagsToString(v, v.Map())
 }
 
-func (ItemFlags) IsFlag() bool {
+func (ItemFlags) IsFlags() bool {
 	return true
 }
 
@@ -457,10 +456,10 @@ func (ItemFlags2) Map() map[ItemFlags2]string {
 }
 
 func (v ItemFlags2) String() string {
-	return flagToString(v, v.Map())
+	return flagsToString(v, v.Map())
 }
 
-func (ItemFlags2) IsFlag() bool {
+func (ItemFlags2) IsFlags() bool {
 	return true
 }
 
@@ -469,9 +468,9 @@ func (ItemFXFlags) Map() map[ItemFXFlags]string {
 }
 
 func (v ItemFXFlags) String() string {
-	return flagToString(v, v.Map())
+	return flagsToString(v, v.Map())
 }
 
-func (ItemFXFlags) IsFlag() bool {
+func (ItemFXFlags) IsFlags() bool {
 	return true
 }

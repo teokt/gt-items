@@ -1,13 +1,15 @@
 package filter
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/teokt/gt-items/internal/utils"
 )
 
-func ParseExpression(expr string) (Condition, error) {
-	expr = strings.TrimSpace(expr)
+func ParseExpression(typ FieldType, expr string) (Condition, error) {
 	if expr == "" {
 		return nil, fmt.Errorf("empty expression")
 	}
@@ -25,12 +27,12 @@ func ParseExpression(expr string) (Condition, error) {
 			}
 		}
 		if depth == 1 {
-			return ParseExpression(expr[1 : len(expr)-1])
+			return ParseExpression(typ, expr[1:len(expr)-1])
 		}
 	}
 
 	if strings.HasPrefix(expr, "!") {
-		inner, err := ParseExpression(expr[1:])
+		inner, err := ParseExpression(typ, expr[1:])
 		if err != nil {
 			return nil, err
 		}
@@ -59,11 +61,11 @@ func ParseExpression(expr string) (Condition, error) {
 	}
 
 	if orIndex != -1 {
-		left, err := ParseExpression(expr[:orIndex])
+		left, err := ParseExpression(typ, expr[:orIndex])
 		if err != nil {
 			return nil, err
 		}
-		right, err := ParseExpression(expr[orIndex+1:])
+		right, err := ParseExpression(typ, expr[orIndex+1:])
 		if err != nil {
 			return nil, err
 		}
@@ -71,40 +73,58 @@ func ParseExpression(expr string) (Condition, error) {
 	}
 
 	if andIndex != -1 {
-		left, err := ParseExpression(expr[:andIndex])
+		left, err := ParseExpression(typ, expr[:andIndex])
 		if err != nil {
 			return nil, err
 		}
-		right, err := ParseExpression(expr[andIndex+1:])
+		right, err := ParseExpression(typ, expr[andIndex+1:])
 		if err != nil {
 			return nil, err
 		}
 		return And{left, right}, nil
 	}
 
-	if strings.Contains(expr, ":") {
-		parts := strings.Split(expr, ":")
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid range format")
+	expr = strings.ToLower(expr)
+
+	switch typ {
+	case FieldTypeString:
+		return String{expr}, nil
+
+	case FieldTypeEnum:
+		return Enum{expr}, nil
+
+	case FieldTypeFlags:
+		return Flags{expr}, nil
+
+	case FieldTypeInt:
+		expr = strings.TrimSpace(expr)
+		if strings.Contains(expr, ":") {
+			parts := strings.Split(expr, ":")
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("invalid range format")
+			}
+
+			r := IntRange{}
+			if parts[0] != "" {
+				min, err := strconv.Atoi(parts[0])
+				if err != nil {
+					return nil, fmt.Errorf("invalid min value: %s", parts[0])
+				}
+				r.Min = &min
+			}
+			if parts[1] != "" {
+				max, err := strconv.Atoi(parts[1])
+				if err != nil {
+					return nil, fmt.Errorf("invalid max value: %s", parts[1])
+				}
+				r.Max = &max
+			}
+			return r, nil
 		}
 
-		r := NumericRange{}
-		if parts[0] != "" {
-			min, err := strconv.Atoi(parts[0])
-			if err != nil {
-				return nil, fmt.Errorf("invalid min value: %s", parts[0])
-			}
-			r.Min = &min
-		}
-		if parts[1] != "" {
-			max, err := strconv.Atoi(parts[1])
-			if err != nil {
-				return nil, fmt.Errorf("invalid max value: %s", parts[1])
-			}
-			r.Max = &max
-		}
-		return r, nil
+		return Int{utils.ToInt(expr)}, nil
+
+	default:
+		return nil, errors.New("unknown field type")
 	}
-
-	return StringValue(expr), nil
 }

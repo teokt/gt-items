@@ -1,8 +1,6 @@
 package filter
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/teokt/gt-items/internal/utils"
@@ -14,9 +12,9 @@ type Condition interface {
 
 type Or []Condition
 
-func (o Or) Match(val any) bool {
+func (o Or) Match(v any) bool {
 	for _, cond := range o {
-		if cond.Match(val) {
+		if cond.Match(v) {
 			return true
 		}
 	}
@@ -25,9 +23,9 @@ func (o Or) Match(val any) bool {
 
 type And []Condition
 
-func (a And) Match(val any) bool {
+func (a And) Match(v any) bool {
 	for _, cond := range a {
-		if !cond.Match(val) {
+		if !cond.Match(v) {
 			return false
 		}
 	}
@@ -36,16 +34,16 @@ func (a And) Match(val any) bool {
 
 type Not struct{ Condition }
 
-func (n Not) Match(val any) bool {
-	return !n.Condition.Match(val)
+func (n Not) Match(v any) bool {
+	return !n.Condition.Match(v)
 }
 
-type NumericRange struct {
+type IntRange struct {
 	Min *int
 	Max *int
 }
 
-func (r NumericRange) Match(v any) bool {
+func (r IntRange) Match(v any) bool {
 	n := utils.ToInt(v)
 	if r.Min != nil && n < *r.Min {
 		return false
@@ -56,40 +54,45 @@ func (r NumericRange) Match(v any) bool {
 	return true
 }
 
-type StringValue string
+type Int struct{ int }
 
-func (sv StringValue) Match(v any) bool {
-	str := strings.ToLower(string(sv))
+func (i Int) Match(v any) bool {
+	return utils.ToInt(v) == i.int
+}
 
-	if utils.IsFlag(v) {
-		s, ok := v.(fmt.Stringer)
-		if !ok {
-			return false
-		}
-		flags := strings.SplitSeq(strings.ToLower(s.String()), ",")
-		for flag := range flags {
-			if strings.TrimSpace(flag) == str {
-				return true
-			}
-		}
+type String struct{ string }
+
+func (s String) Match(v any) bool {
+	str, ok := v.(string)
+	if !ok {
+		return false
+	}
+	return strings.Contains(strings.ToLower(str), s.string)
+}
+
+type Enum struct{ string }
+
+func (e Enum) Match(v any) bool {
+	enum, ok := v.(utils.Enum)
+	if !ok {
+		return false
+	}
+	return strings.ToLower(enum.String()) == e.string
+}
+
+type Flags struct{ string }
+
+func (f Flags) Match(v any) bool {
+	flags, ok := v.(utils.Flags)
+	if !ok {
 		return false
 	}
 
-	if utils.IsEnum(v) {
-		s, ok := v.(fmt.Stringer)
-		if !ok {
-			return false
+	flagsStr := strings.TrimSpace(strings.ToLower(flags.String()))
+	for flag := range strings.SplitSeq(flagsStr, ",") {
+		if flag == f.string {
+			return true
 		}
-		return strings.ToLower(s.String()) == str
 	}
-
-	if s, ok := v.(string); ok {
-		return strings.Contains(strings.ToLower(s), str)
-	}
-
-	n, err := strconv.Atoi(str)
-	if err != nil {
-		return false
-	}
-	return utils.ToInt(v) == n
+	return false
 }

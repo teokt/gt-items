@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -34,14 +33,18 @@ func main() {
 
 	for {
 		fmt.Print("gt-items> ")
+
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
+
 		parts := strings.SplitN(input, " ", 2)
 		cmd := parts[0]
 
 		switch cmd {
 		case "search":
-			handleSearch(items, matcher, parts)
+			handleSearch(items, matcher, parts[1])
+		case "fields":
+			printFieldsTable(matcher.Fields)
 		case "exit", "quit":
 			return
 		default:
@@ -50,8 +53,8 @@ func main() {
 	}
 }
 
-func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], parts []string) {
-	if len(parts) < 2 {
+func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], filters string) {
+	if len(filters) == 0 {
 		fmt.Println("usage: search <filters> [--display=id,name] [--limit=10]")
 		return
 	}
@@ -61,8 +64,8 @@ func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], 
 	displayFields := []string{"id", "name"}
 	limit := 0
 
-	args := strings.FieldsSeq(parts[1])
-	for arg := range args {
+	args := strings.Split(filters, "--")[1:]
+	for _, arg := range args {
 		switch {
 		case strings.HasPrefix(arg, "--display="):
 			displayFields = strings.Split(strings.TrimPrefix(arg, "--display="), ",")
@@ -85,34 +88,33 @@ func handleSearch(items *item.ItemManager, matcher *filter.Matcher[*item.Item], 
 			}
 		}
 	}
-	printTable(results, displayFields)
+
+	printSearchTable(results, matcher.Fields, displayFields)
 }
 
-func printTable[T any](items []T, displayFields []string) {
+func printSearchTable[T any](items []T, fields map[string]*filter.Field[T], displayFields []string) {
 	table := tablewriter.NewTable(os.Stdout,
 		tablewriter.WithHeaderAutoFormat(tw.Off),
 	)
 
-	fieldNames := createFieldNameMap[T]()
-
-	headers := []string{}
-	for _, field := range displayFields {
-		if exact, ok := fieldNames[strings.ToLower(field)]; ok {
-			headers = append(headers, exact)
-		} else {
-			headers = append(headers, field)
+	headers := make([]string, 0, len(displayFields))
+	for _, fieldName := range displayFields {
+		if field, exists := fields[fieldName]; exists {
+			headers = append(headers, field.Name)
 		}
 	}
 	table.Header(headers)
 
 	for _, item := range items {
-		fields := createFieldMap(item)
-		row := []string{}
-		for _, field := range displayFields {
-			if val, ok := fields[strings.ToLower(field)]; ok {
+		var row []string
+		for _, fieldName := range displayFields {
+			if field, exists := fields[fieldName]; exists {
+				val := field.Accessor(item)
+				if val == nil {
+					row = append(row, "invalid value")
+					continue
+				}
 				row = append(row, fmt.Sprintf("%v", val))
-			} else {
-				row = append(row, "<unknown field>")
 			}
 		}
 		table.Append(row)
@@ -121,28 +123,17 @@ func printTable[T any](items []T, displayFields []string) {
 	table.Render()
 }
 
-func createFieldNameMap[T any]() map[string]string {
-	typ := reflect.TypeFor[T]()
-	if typ.Kind() == reflect.Pointer {
-		typ = typ.Elem()
+func printFieldsTable[T any](fields map[string]*filter.Field[T]) {
+	table := tablewriter.NewTable(os.Stdout,
+		tablewriter.WithHeaderAutoFormat(tw.Off),
+	)
+
+	table.Header("Name", "Type")
+
+	for _, field := range fields {
+		table.Append(field.Name, field.Type)
 	}
 
-	fieldNames := make(map[string]string)
-	for i := range typ.NumField() {
-		fieldName := typ.Field(i).Name
-		fieldNames[strings.ToLower(fieldName)] = fieldName
-	}
-	return fieldNames
-}
+	table.Render()
 
-func createFieldMap[T any](obj T) map[string]reflect.Value {
-	val := reflect.Indirect(reflect.ValueOf(obj))
-	typ := val.Type()
-
-	fields := make(map[string]reflect.Value)
-	for i := range typ.NumField() {
-		fieldName := typ.Field(i).Name
-		fields[strings.ToLower(fieldName)] = val.Field(i)
-	}
-	return fields
 }
